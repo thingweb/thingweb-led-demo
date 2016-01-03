@@ -27,6 +27,7 @@ package de.thingweb.launcher;
 import de.thingweb.desc.DescriptionParser;
 import de.thingweb.leddemo.DemoLedAdapter;
 import de.thingweb.servient.ServientBuilder;
+import de.thingweb.servient.ThingInterface;
 import de.thingweb.servient.ThingServer;
 import de.thingweb.thing.Content;
 import de.thingweb.thing.MediaType;
@@ -52,47 +53,48 @@ public class Launcher {
 		String ledTD = "jsonld" + File.separator + "fancy_led.jsonld";
 
 		Thing led = new Thing(DescriptionParser.fromFile(ledTD));
-		ThingServer server = ServientBuilder.newThingServer(led);
+		ThingServer server = ServientBuilder.newThingServer();
+		ThingInterface thing = server.addThing(led);
 
-		attachHandlers(server);
+		attachHandlers(thing);
 
 		ServientBuilder.start();
 		}
 
-	public static void attachHandlers(final ThingServer server) {
+	public static void attachHandlers(final ThingInterface led) {
 		DemoLedAdapter realLed = new DemoLedAdapter();
 
 		//init block
-		server.setProperty("rgbValueRed",realLed.getRed() & 0xFF);
-		server.setProperty("rgbValueGreen",realLed.getGreen() & 0xFF);
-		server.setProperty("rgbValueBlue",realLed.getBlue() & 0xFF);
-		server.setProperty("brightness",realLed.getBrightnessPercent());
+		led.setProperty("rgbValueRed",realLed.getRed() & 0xFF);
+		led.setProperty("rgbValueGreen",realLed.getGreen() & 0xFF);
+		led.setProperty("rgbValueBlue",realLed.getBlue() & 0xFF);
+		led.setProperty("brightness",realLed.getBrightnessPercent());
 
-		server.onUpdate("rgbValueBlue", (input) -> {
+		led.onUpdate("rgbValueBlue", (input) -> {
 			Integer value = ContentHelper.ensureClass(input, Integer.class);
 			log.info("setting blue value to " + value);
 			realLed.setBlue((byte) value.intValue());
 		});
 
-		server.onUpdate("rgbValueRed", (input) -> {
+		led.onUpdate("rgbValueRed", (input) -> {
 			Integer value = ContentHelper.ensureClass(input, Integer.class);
 			log.info("setting red value to " + value);
 			realLed.setRed((byte) value.intValue());
 		});
 
-		server.onUpdate("rgbValueGreen", (input) -> {
+		led.onUpdate("rgbValueGreen", (input) -> {
 			Integer value = ContentHelper.ensureClass(input, Integer.class);
 			log.info("setting green value to " + value);
 			realLed.setGreen((byte) value.intValue());
 		});
 
-		server.onUpdate("brightness", (input) -> {
+		led.onUpdate("brightness", (input) -> {
 			Integer value = ContentHelper.ensureClass(input, Integer.class);
 			log.info("setting brightness to " + value);
 			realLed.setBrightnessPercent(value.byteValue());
 		});
 
-		server.onUpdate("colorTemperature", (input) -> {
+		led.onUpdate("colorTemperature", (input) -> {
 			Integer colorTemperature = ContentHelper.ensureClass(input, Integer.class);
 			log.info("setting color temperature to " + colorTemperature +  " K");
 
@@ -123,34 +125,31 @@ public class Launcher {
 			}
 
 			log.info("color temperature equals (" + red + "," + green + "," + blue +")");
-			server.setProperty("rgbValueGreen",green);
-			server.setProperty("rgbValueRed", red);
-			server.setProperty("rgbValueBlue", blue);
+			led.setProperty("rgbValueGreen",green);
+			led.setProperty("rgbValueRed", red);
+			led.setProperty("rgbValueBlue", blue);
 
 		});
 
-		server.onInvoke("fadeIn", (input) -> {
+		led.onInvoke("fadeIn", (input) -> {
 			Integer duration = ContentHelper.ensureClass(input, Integer.class);
 			log.info("fading in over {}s", duration);
-			Runnable execution = new Runnable() {
-				@Override
-				public void run() {
-					int steps = duration * 1000 / STEPLENGTH;
-					int delta = Math.max(100 / steps, 1);
+			Runnable execution = () -> {
+                int steps = duration * 1000 / STEPLENGTH;
+                int delta = Math.max(100 / steps, 1);
 
-					int brightness = 0;
-					server.setProperty("brightness", brightness);
-					while (brightness < 100) {
-						server.setProperty("brightness", brightness);
-						try {
-							Thread.sleep(STEPLENGTH);
-						} catch (InterruptedException e) {
-							break;
-						}
-						brightness += delta;
-					}
-				}
-			};
+                int brightness = 0;
+                led.setProperty("brightness", brightness);
+                while (brightness < 100) {
+                    led.setProperty("brightness", brightness);
+                    try {
+                        Thread.sleep(STEPLENGTH);
+                    } catch (InterruptedException e) {
+                        break;
+                    }
+                    brightness += delta;
+                }
+            };
 
 			//TODO assign resource for thread (outside)
 			new Thread(execution).start();
@@ -158,65 +157,62 @@ public class Launcher {
 			return new Content("".getBytes(), MediaType.APPLICATION_JSON);
 		});
 
-		server.onInvoke("fadeOut", (input) -> {
+		led.onInvoke("fadeOut", (input) -> {
 			Integer duration = ContentHelper.ensureClass(input, Integer.class);
-			Runnable execution = new Runnable() {
-				@Override
-				public void run() {
-					int steps = duration * 1000 / STEPLENGTH;
-					int delta = Math.max(100 / steps,1);
+			Runnable execution = () -> {
+                int steps = duration * 1000 / STEPLENGTH;
+                int delta = Math.max(100 / steps,1);
 
-					int brightness = 100;
-					server.setProperty("brightness", brightness);
-					while(brightness > 0) {
-						server.setProperty("brightness", brightness);
-						try {
-							Thread.sleep(STEPLENGTH);
-						} catch (InterruptedException e) {
-							break;
-						}
-						brightness -= delta;
-					}
-				}
-			};
+                int brightness = 100;
+                led.setProperty("brightness", brightness);
+                while(brightness > 0) {
+                    led.setProperty("brightness", brightness);
+                    try {
+                        Thread.sleep(STEPLENGTH);
+                    } catch (InterruptedException e) {
+                        break;
+                    }
+                    brightness -= delta;
+                }
+            };
 
 			new Thread(execution).start();
 
 			return new Content("".getBytes(), MediaType.APPLICATION_JSON);
 		});
 
-		server.onInvoke("ledOnOff", (input) -> {
+		led.onInvoke("ledOnOff", (input) -> {
 			Boolean target = ContentHelper.ensureClass(input, Boolean.class);
 
 			if(target) {
-				server.setProperty("rgbValueGreen",255);
-				server.setProperty("rgbValueRed",255);
-				server.setProperty("rgbValueBlue", 255);
+				led.setProperty("rgbValueGreen",255);
+				led.setProperty("rgbValueRed",255);
+				led.setProperty("rgbValueBlue", 255);
 
-				server.setProperty("brightness", 100);
+				led.setProperty("brightness", 100);
 			} else {
-				server.setProperty("brightness", 0);
+				led.setProperty("brightness", 0);
 
-				server.setProperty("rgbValueGreen",0);
-				server.setProperty("rgbValueRed",0);
-				server.setProperty("rgbValueBlue", 0);
+				led.setProperty("rgbValueGreen",0);
+				led.setProperty("rgbValueRed",0);
+				led.setProperty("rgbValueBlue", 0);
 			}
 
 			return new Content("".getBytes(), MediaType.APPLICATION_JSON);
 		});
 
-		server.onInvoke("trafficLight", (input) -> {
+		led.onInvoke("trafficLight", (input) -> {
 			Boolean go = ContentHelper.ensureClass(input, Boolean.class);
 			log.info("trafic light changing state to {}",(go)? "green": "red" );
 
 			if(go) {
-				server.setProperty("rgbValueGreen",255);
-				server.setProperty("rgbValueRed", 0);
-				server.setProperty("rgbValueBlue", 0);
+				led.setProperty("rgbValueGreen",255);
+				led.setProperty("rgbValueRed", 0);
+				led.setProperty("rgbValueBlue", 0);
 			} else {
-				server.setProperty("rgbValueGreen",0);
-				server.setProperty("rgbValueRed",255);
-				server.setProperty("rgbValueBlue", 0);
+				led.setProperty("rgbValueGreen",0);
+				led.setProperty("rgbValueRed",255);
+				led.setProperty("rgbValueBlue", 0);
 			}
 
 			return new Content("".getBytes(), MediaType.APPLICATION_JSON);
