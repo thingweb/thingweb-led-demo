@@ -1,0 +1,39 @@
+{
+  "@context": "http://w3c.github.io/wot/w3c-wot-td-context.jsonld",
+  "metadata": {
+    "name": "servient",
+    "protocols": {}
+  },
+  "interactions": [
+    {
+      "@type": "Property",
+      "name": "numberOfThings",
+      "outputData": "xsd:int",
+      "writable": false
+    },
+    {
+      "@type": "Property",
+      "name": "securityEnabled",
+      "outputData": "xsd:boolean",
+      "writable": true
+    },
+    {
+      "@type": "Action",
+      "name": "createThing",
+      "inputData": "xsd:string",
+      "outputData": ""
+    },
+    {
+      "@type": "Action",
+      "name": "createThingFromUrl",
+      "inputData": "xsd:string",
+      "outputData": ""
+    },
+    {
+      "@type": "Action",
+      "name": "addHandlerScript",
+      "inputData": "xsd:string",
+      "outputData": ""
+    }
+  ]
+}

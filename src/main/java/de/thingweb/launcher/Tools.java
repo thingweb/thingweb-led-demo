@@ -26,6 +26,8 @@
 
 package de.thingweb.launcher;
 
+import de.thingweb.desc.DescriptionParser;
+import de.thingweb.desc.pojo.ThingDescription;
 import de.thingweb.thing.MediaType;
 
 import java.io.IOException;
@@ -35,8 +37,9 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.charset.Charset;
-import java.nio.file.Files;
-import java.nio.file.Paths;
+import java.nio.file.*;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Properties;
 import java.util.Scanner;
 
@@ -47,11 +50,19 @@ public class Tools {
 
     public static String readResource(String path) throws URISyntaxException, IOException {
         URI uri = Tools.class.getClassLoader().getResource(path).toURI();
+        Map<String, String> env = new HashMap<>();
+        env.put("create", "true");
+        FileSystem zipfs = FileSystems.newFileSystem(uri, env);
         return new String(Files.readAllBytes(Paths.get(uri)), Charset.forName("UTF-8"));
     }
 
-    public static String readResourceFilePath(String path) throws URISyntaxException, IOException {
-        return Tools.class.getClassLoader().getResource(path).getFile();
+    public static String pathOrResource(String path) throws URISyntaxException, IOException {
+        final URI uri = Tools.class.getClassLoader().getResource(path).toURI();
+        Map<String, String> env = new HashMap<>();
+        env.put("create", "true");
+        FileSystem zipfs = FileSystems.newFileSystem(uri, env);
+        Path filePath = Paths.get(uri);
+        return filePath.toString();
     }
 
     public static Properties loadPropertiesFromResources(String path) throws URISyntaxException, IOException {
@@ -79,4 +90,13 @@ public class Tools {
         connection.getInputStream().close();
     }
 
+    static ThingDescription getThingDescriptionFromFileOrResource(String fname) throws IOException, URISyntaxException {
+        ThingDescription fancyLedDesc;
+        try {
+            fancyLedDesc = DescriptionParser.fromFile(fname);
+        } catch (IOException e) {
+            fancyLedDesc = DescriptionParser.fromBytes(readResource(fname).getBytes());
+        }
+        return fancyLedDesc;
+    }
 }

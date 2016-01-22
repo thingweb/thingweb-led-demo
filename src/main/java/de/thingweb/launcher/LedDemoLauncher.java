@@ -44,8 +44,6 @@ import java.util.LinkedHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import static de.thingweb.launcher.Tools.readResource;
-
 
 /**
  * Launches a WoT thing.
@@ -63,9 +61,9 @@ public class LedDemoLauncher {
 		server = ServientBuilder.newThingServer();
 		jsrt = WotJavaScriptRuntime.create();
 
-		final ThingDescription fancyLedDesc = DescriptionParser.fromBytes(readResource("fancy_led.jsonld").getBytes());
-		final ThingDescription basicLedDesc = DescriptionParser.fromBytes(readResource("basic_led.jsonld").getBytes());
-		final ThingDescription servientDesc = DescriptionParser.fromBytes(readResource("servientmodel.jsonld").getBytes());
+		final ThingDescription fancyLedDesc = Tools.getThingDescriptionFromFileOrResource("fancy_led.jsonld");
+		final ThingDescription basicLedDesc = Tools.getThingDescriptionFromFileOrResource("basic_led.jsonld");
+		final ThingDescription servientDesc = Tools.getThingDescriptionFromFileOrResource("servientmodel.jsonld");
 
 		ThingInterface fancyLed = server.addThing(fancyLedDesc);
 		ThingInterface basicLed = server.addThing(basicLedDesc);
