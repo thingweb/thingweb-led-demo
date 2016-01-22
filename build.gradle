@@ -31,14 +31,22 @@ targetCompatibility = '1.8'
 mainClassName = "de.thingweb.launcher.Launcher"
 
 repositories {
-	maven { url "https://jitpack.io" }
+    mavenLocal();
+    maven { url "https://jitpack.io" }
 	mavenCentral()
 	jcenter()
+    maven {
+        url "http://dl.bintray.com/h0ru5/maven"
+    }
 }
 
 dependencies {
-    compile "com.github.thingweb.thingweb:thingweb-server:master-SNAPSHOT"
-    compile "com.github.thingweb.thingweb:thingweb-parser:master-SNAPSHOT"
+    compile "de.thingweb:thingweb-server:v0.1.11+"
+    compile "de.thingweb:thingweb-parser:v0.1.11+"
+    compile "de.thingweb:thingweb-javascript:v0.1.11+"
+
+    //compile "com.github.thingweb.thingweb:thingweb-server:master-SNAPSHOT"
+    // compile "com.github.thingweb.thingweb:thingweb-parser:master-SNAPSHOT"
 
     compile group: 'ch.qos.logback', name: 'logback-classic', version: '1.+'
     compile group: 'net.java.dev.jna', name: 'jna-platform', version: '4.+'

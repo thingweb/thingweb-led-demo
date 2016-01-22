@@ -25,6 +25,7 @@
 package de.thingweb.launcher;
 
 import de.thingweb.desc.DescriptionParser;
+import de.thingweb.desc.pojo.ThingDescription;
 import de.thingweb.leddemo.DemoLedAdapter;
 import de.thingweb.servient.ServientBuilder;
 import de.thingweb.servient.ThingInterface;
@@ -36,7 +37,10 @@ import de.thingweb.util.encoding.ContentHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
+import java.io.IOException;
+import java.util.LinkedHashMap;
+
+import static de.thingweb.launcher.Tools.readResource;
 
 
 /**
@@ -46,29 +50,53 @@ public class Launcher {
 
 	private static final Logger log = LoggerFactory.getLogger(Launcher.class);
 	private static final int STEPLENGTH = 100;
+	private static ThingServer server;
 
 	public static void main(String[] args) throws Exception {
 		ServientBuilder.initialize();
+		server = ServientBuilder.newThingServer();
 
-		String ledTD = "jsonld" + File.separator + "fancy_led.jsonld";
+		final ThingDescription fancyLedDesc = DescriptionParser.fromBytes(readResource("fancy_led.jsonld").getBytes());
+		final ThingDescription basicLedDesc = DescriptionParser.fromBytes(readResource("basic_led.jsonld").getBytes());
+		final ThingDescription servientDesc = DescriptionParser.fromBytes(readResource("servientmodel.jsonld").getBytes());
 
-		Thing led = new Thing(DescriptionParser.fromFile(ledTD));
-		ThingServer server = ServientBuilder.newThingServer();
-		ThingInterface thing = server.addThing(led);
+		ThingInterface fancyLed = server.addThing(fancyLedDesc);
+		ThingInterface basicLed = server.addThing(basicLedDesc);
+		ThingInterface serverInterface = server.addThing(servientDesc);
 
-		attachHandlers(thing);
+		attachBasicHandlers(basicLed);
+		attachFancyHandlers(fancyLed);
+
+		addServientInterfaceHandlers(serverInterface);
 
 		ServientBuilder.start();
-		}
+	}
 
-	public static void attachHandlers(final ThingInterface led) {
+	public static void addServientInterfaceHandlers(ThingInterface serverInterface) throws IOException {
+		serverInterface.setProperty("numberOfThings", 3);
+		serverInterface.onInvoke("createThing", (data) -> {
+			final LinkedHashMap jsonld = ContentHelper.ensureClass(data, LinkedHashMap.class);
+
+			try {
+				final ThingDescription thingDescription = DescriptionParser.mapJson(jsonld);
+				Thing newThing = new Thing(thingDescription.getMetadata().getName());
+				newThing.addInteractions(thingDescription.getInteractions());
+				server.addThing(newThing);
+				return newThing.getThingDescription().getMetadata();
+			} catch (IOException e) {
+				throw new RuntimeException(e);
+			}
+		});
+	}
+
+	public static void attachBasicHandlers(final ThingInterface led) {
 		DemoLedAdapter realLed = new DemoLedAdapter();
 
 		//init block
-		led.setProperty("rgbValueRed",realLed.getRed() & 0xFF);
-		led.setProperty("rgbValueGreen",realLed.getGreen() & 0xFF);
-		led.setProperty("rgbValueBlue",realLed.getBlue() & 0xFF);
-		led.setProperty("brightness",realLed.getBrightnessPercent());
+		led.setProperty("rgbValueRed", realLed.getRed() & 0xFF);
+		led.setProperty("rgbValueGreen", realLed.getGreen() & 0xFF);
+		led.setProperty("rgbValueBlue", realLed.getBlue() & 0xFF);
+		led.setProperty("brightness", realLed.getBrightnessPercent());
 
 		led.onUpdate("rgbValueBlue", (input) -> {
 			Integer value = ContentHelper.ensureClass(input, Integer.class);
@@ -94,7 +122,12 @@ public class Launcher {
 			realLed.setBrightnessPercent(value.byteValue());
 		});
 
-		led.onUpdate("colorTemperature", (input) -> {
+	}
+
+	public static void attachFancyHandlers(final ThingInterface fancyLed) {
+		ThingInterface led = server.getThing("basicLed");
+
+		fancyLed.onUpdate("colorTemperature", (input) -> {
 			Integer colorTemperature = ContentHelper.ensureClass(input, Integer.class);
 			log.info("setting color temperature to " + colorTemperature +  " K");
 
@@ -131,7 +164,7 @@ public class Launcher {
 
 		});
 
-		led.onInvoke("fadeIn", (input) -> {
+		fancyLed.onInvoke("fadeIn", (input) -> {
 			Integer duration = ContentHelper.ensureClass(input, Integer.class);
 			log.info("fading in over {}s", duration);
 			Runnable execution = () -> {
@@ -154,10 +187,10 @@ public class Launcher {
 			//TODO assign resource for thread (outside)
 			new Thread(execution).start();
 
-			return new Content("".getBytes(), MediaType.APPLICATION_JSON);
+			return null;
 		});
 
-		led.onInvoke("fadeOut", (input) -> {
+		fancyLed.onInvoke("fadeOut", (input) -> {
 			Integer duration = ContentHelper.ensureClass(input, Integer.class);
 			Runnable execution = () -> {
                 int steps = duration * 1000 / STEPLENGTH;
@@ -181,7 +214,7 @@ public class Launcher {
 			return new Content("".getBytes(), MediaType.APPLICATION_JSON);
 		});
 
-		led.onInvoke("ledOnOff", (input) -> {
+		fancyLed.onInvoke("ledOnOff", (input) -> {
 			Boolean target = ContentHelper.ensureClass(input, Boolean.class);
 
 			if(target) {
@@ -201,7 +234,7 @@ public class Launcher {
 			return new Content("".getBytes(), MediaType.APPLICATION_JSON);
 		});
 
-		led.onInvoke("trafficLight", (input) -> {
+		fancyLed.onInvoke("trafficLight", (input) -> {
 			Boolean go = ContentHelper.ensureClass(input, Boolean.class);
 			log.info("trafic light changing state to {}",(go)? "green": "red" );
 
