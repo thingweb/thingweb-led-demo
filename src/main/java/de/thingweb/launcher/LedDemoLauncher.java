@@ -26,6 +26,7 @@ package de.thingweb.launcher;
 
 import de.thingweb.desc.DescriptionParser;
 import de.thingweb.desc.pojo.ThingDescription;
+import de.thingweb.jsruntime.WotJavaScriptRuntime;
 import de.thingweb.leddemo.DemoLedAdapter;
 import de.thingweb.servient.ServientBuilder;
 import de.thingweb.servient.ThingInterface;
@@ -37,8 +38,11 @@ import de.thingweb.util.encoding.ContentHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.script.ScriptException;
 import java.io.IOException;
 import java.util.LinkedHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import static de.thingweb.launcher.Tools.readResource;
 
@@ -46,15 +50,18 @@ import static de.thingweb.launcher.Tools.readResource;
 /**
  * Launches a WoT thing.
  */
-public class Launcher {
+public class LedDemoLauncher {
 
-	private static final Logger log = LoggerFactory.getLogger(Launcher.class);
+	private static final Logger log = LoggerFactory.getLogger(LedDemoLauncher.class);
 	private static final int STEPLENGTH = 100;
-	private static ThingServer server;
+	private static final ExecutorService executor = Executors.newCachedThreadPool();
+	private final ThingServer server;
+	private final WotJavaScriptRuntime jsrt;
 
-	public static void main(String[] args) throws Exception {
+	public LedDemoLauncher() throws Exception {
 		ServientBuilder.initialize();
 		server = ServientBuilder.newThingServer();
+		jsrt = WotJavaScriptRuntime.create();
 
 		final ThingDescription fancyLedDesc = DescriptionParser.fromBytes(readResource("fancy_led.jsonld").getBytes());
 		final ThingDescription basicLedDesc = DescriptionParser.fromBytes(readResource("basic_led.jsonld").getBytes());
@@ -66,14 +73,21 @@ public class Launcher {
 
 		attachBasicHandlers(basicLed);
 		attachFancyHandlers(fancyLed);
-
 		addServientInterfaceHandlers(serverInterface);
+	}
 
+	public static void main(String[] args) throws Exception {
+		LedDemoLauncher launcher = new LedDemoLauncher();
+		launcher.start();
+	}
+
+	public void start() throws Exception {
 		ServientBuilder.start();
 	}
 
-	public static void addServientInterfaceHandlers(ThingInterface serverInterface) throws IOException {
+	public void addServientInterfaceHandlers(ThingInterface serverInterface) throws IOException {
 		serverInterface.setProperty("numberOfThings", 3);
+
 		serverInterface.onInvoke("createThing", (data) -> {
 			final LinkedHashMap jsonld = ContentHelper.ensureClass(data, LinkedHashMap.class);
 
@@ -87,9 +101,20 @@ public class Launcher {
 				throw new RuntimeException(e);
 			}
 		});
+
+		serverInterface.onInvoke("addHandlerScript", (data) -> {
+			final String script = ContentHelper.ensureClass(data, String.class);
+
+			try {
+				jsrt.runScript(script);
+			} catch (ScriptException e) {
+				throw new RuntimeException(e);
+			}
+			return new Content(new byte[0], MediaType.APPLICATION_JSON);
+		});
 	}
 
-	public static void attachBasicHandlers(final ThingInterface led) {
+	public void attachBasicHandlers(final ThingInterface led) {
 		DemoLedAdapter realLed = new DemoLedAdapter();
 
 		//init block
@@ -124,7 +149,7 @@ public class Launcher {
 
 	}
 
-	public static void attachFancyHandlers(final ThingInterface fancyLed) {
+	public void attachFancyHandlers(final ThingInterface fancyLed) {
 		ThingInterface led = server.getThing("basicLed");
 
 		fancyLed.onUpdate("colorTemperature", (input) -> {
@@ -187,7 +212,7 @@ public class Launcher {
 			//TODO assign resource for thread (outside)
 			new Thread(execution).start();
 
-			return null;
+			return new Content("".getBytes(), MediaType.APPLICATION_JSON);
 		});
 
 		fancyLed.onInvoke("fadeOut", (input) -> {

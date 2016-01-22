@@ -28,7 +28,7 @@ apply plugin: 'java'
 sourceCompatibility = '1.8'
 targetCompatibility = '1.8'
 
-mainClassName = "de.thingweb.launcher.Launcher"
+mainClassName = "de.thingweb.launcher.LedDemoLauncher"
 
 repositories {
     mavenLocal();
