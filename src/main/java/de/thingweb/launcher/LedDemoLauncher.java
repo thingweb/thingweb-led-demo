@@ -55,11 +55,12 @@ public class LedDemoLauncher {
 	private static final ExecutorService executor = Executors.newCachedThreadPool();
 	private final ThingServer server;
 	private final WotJavaScriptRuntime jsrt;
+	private final Thing srvThing;
 
 	public LedDemoLauncher() throws Exception {
 		ServientBuilder.initialize();
 		server = ServientBuilder.newThingServer();
-		jsrt = WotJavaScriptRuntime.create();
+		jsrt = WotJavaScriptRuntime.createOn(server);
 
 		final ThingDescription fancyLedDesc = Tools.getThingDescriptionFromFileOrResource("fancy_led.jsonld");
 		final ThingDescription basicLedDesc = Tools.getThingDescriptionFromFileOrResource("basic_led.jsonld");
@@ -67,7 +68,8 @@ public class LedDemoLauncher {
 
 		ThingInterface fancyLed = server.addThing(fancyLedDesc);
 		ThingInterface basicLed = server.addThing(basicLedDesc);
-		ThingInterface serverInterface = server.addThing(servientDesc);
+		srvThing = new Thing(servientDesc);
+		ThingInterface serverInterface = server.addThing(srvThing);
 
 		attachBasicHandlers(basicLed);
 		attachFancyHandlers(fancyLed);
@@ -84,7 +86,15 @@ public class LedDemoLauncher {
 	}
 
 	public void addServientInterfaceHandlers(ThingInterface serverInterface) throws IOException {
-		serverInterface.setProperty("numberOfThings", 3);
+		serverInterface.setProperty("numberOfThings", server.getThings().size());
+		serverInterface.setProperty("securityEnabled", false);
+
+		serverInterface.onUpdate("securityEnabled", (nV) -> {
+			final Boolean protectionEnabled = ContentHelper.ensureClass(nV, Boolean.class);
+			server.getThings().stream()
+					.filter((thing1 -> !thing1.equals(srvThing)))
+					.forEach(thing -> thing.setProtection(protectionEnabled));
+		});
 
 		serverInterface.onInvoke("createThing", (data) -> {
 			final LinkedHashMap jsonld = ContentHelper.ensureClass(data, LinkedHashMap.class);
@@ -94,6 +104,7 @@ public class LedDemoLauncher {
 				Thing newThing = new Thing(thingDescription.getMetadata().getName());
 				newThing.addInteractions(thingDescription.getInteractions());
 				server.addThing(newThing);
+				serverInterface.setProperty("numberOfThings", server.getThings().size());
 				return newThing.getThingDescription().getMetadata();
 			} catch (IOException e) {
 				throw new RuntimeException(e);

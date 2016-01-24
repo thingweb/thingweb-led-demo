@@ -29,6 +29,8 @@ package de.thingweb.launcher;
 import de.thingweb.desc.DescriptionParser;
 import de.thingweb.desc.pojo.ThingDescription;
 import de.thingweb.thing.MediaType;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -37,9 +39,8 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.charset.Charset;
-import java.nio.file.*;
-import java.util.HashMap;
-import java.util.Map;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.Properties;
 import java.util.Scanner;
 
@@ -48,21 +49,30 @@ import java.util.Scanner;
  */
 public class Tools {
 
+    private static final Logger log = LoggerFactory.getLogger(Tools.class);
+
     public static String readResource(String path) throws URISyntaxException, IOException {
         URI uri = Tools.class.getClassLoader().getResource(path).toURI();
+/*
         Map<String, String> env = new HashMap<>();
         env.put("create", "true");
         FileSystem zipfs = FileSystems.newFileSystem(uri, env);
+*/
         return new String(Files.readAllBytes(Paths.get(uri)), Charset.forName("UTF-8"));
     }
 
     public static String pathOrResource(String path) throws URISyntaxException, IOException {
-        final URI uri = Tools.class.getClassLoader().getResource(path).toURI();
-        Map<String, String> env = new HashMap<>();
-        env.put("create", "true");
-        FileSystem zipfs = FileSystems.newFileSystem(uri, env);
-        Path filePath = Paths.get(uri);
-        return filePath.toString();
+        try {
+            return new String(Files.readAllBytes(Paths.get(path)));
+        } catch (IOException e) {
+            try {
+                final URI uri = Tools.class.getClassLoader().getResource(path).toURI();
+                return new String(Files.readAllBytes(Paths.get(path)));
+            } catch (Exception ex) {
+                log.error("problem reading file", e);
+                return null;
+            }
+        }
     }
 
     public static Properties loadPropertiesFromResources(String path) throws URISyntaxException, IOException {
