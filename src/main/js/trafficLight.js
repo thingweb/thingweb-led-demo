@@ -6,11 +6,14 @@ fancy.onInvoke('trafficLight', function(mayDrive) {
 
     if(mayDrive) {
         led.setProperty('rgbValueGreen',255);
-        led.setProperty('rgbValueRed', 0);
+        led.setProperty('rgbValueRed', 255);
         led.setProperty('rgbValueBlue', 0);
+        return "drive";
     } else {
         led.setProperty('rgbValueGreen',0);
-        led.setProperty('rgbValueRed',255);
-        led.setProperty('rgbValueBlue', 0);
+        led.setProperty('rgbValueRed',0);
+        led.setProperty('rgbValueBlue', 255);
+
+        return "don't drive";
     }
 });
