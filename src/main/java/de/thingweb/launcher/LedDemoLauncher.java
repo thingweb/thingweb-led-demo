@@ -28,6 +28,7 @@ import de.thingweb.desc.DescriptionParser;
 import de.thingweb.desc.pojo.ThingDescription;
 import de.thingweb.jsruntime.WotJavaScriptRuntime;
 import de.thingweb.leddemo.DemoLedAdapter;
+import de.thingweb.security.TokenRequirements;
 import de.thingweb.servient.ServientBuilder;
 import de.thingweb.servient.ThingInterface;
 import de.thingweb.servient.ThingServer;
@@ -59,7 +60,8 @@ public class LedDemoLauncher {
 
 	public LedDemoLauncher() throws Exception {
 		ServientBuilder.initialize();
-		server = ServientBuilder.newThingServer();
+		final TokenRequirements tokenRequirements = NicePlugFestTokenReqFactory.createTokenRequirements();
+		server = ServientBuilder.newThingServer(tokenRequirements);
 		jsrt = WotJavaScriptRuntime.createOn(server);
 
 		final ThingDescription fancyLedDesc = Tools.getThingDescriptionFromFileOrResource("fancy_led.jsonld");
@@ -93,7 +95,11 @@ public class LedDemoLauncher {
 			final Boolean protectionEnabled = ContentHelper.ensureClass(nV, Boolean.class);
 			server.getThings().stream()
 					.filter((thing1 -> !thing1.equals(srvThing)))
-					.forEach(thing -> thing.setProtection(protectionEnabled));
+					.forEach(thing -> {
+						log.info(" setting security enablement for {} to {}", thing.getName(), protectionEnabled);
+						thing.setProtection(protectionEnabled);
+						server.addThing(thing); //overwriting handlers, very inefficient
+					});
 		});
 
 		serverInterface.onInvoke("createThing", (data) -> {
