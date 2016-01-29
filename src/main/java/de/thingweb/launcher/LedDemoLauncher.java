@@ -98,7 +98,7 @@ public class LedDemoLauncher {
 					.forEach(thing -> {
 						log.info(" setting security enablement for {} to {}", thing.getName(), protectionEnabled);
 						thing.setProtection(protectionEnabled);
-						server.addThing(thing); //overwriting handlers, very inefficient
+						server.rebindSec(thing.getName(), protectionEnabled); //overwriting handlers, very inefficient
 					});
 		});
 
@@ -165,9 +165,10 @@ public class LedDemoLauncher {
 	}
 
 	public void attachFancyHandlers(final ThingInterface fancyLed) {
-		ThingInterface led = server.getThing("basicLed");
+		ThingInterface basicLed = server.getThing("basicLed");
 
 		fancyLed.onUpdate("colorTemperature", (input) -> {
+			ThingInterface led = server.getThing("basicLed");
 			Integer colorTemperature = ContentHelper.ensureClass(input, Integer.class);
 			log.info("setting color temperature to " + colorTemperature +  " K");
 
@@ -205,6 +206,7 @@ public class LedDemoLauncher {
 		});
 
 		fancyLed.onInvoke("fadeIn", (input) -> {
+			ThingInterface led = server.getThing("basicLed");
 			Integer duration = ContentHelper.ensureClass(input, Integer.class);
 			log.info("fading in over {}s", duration);
 			Runnable execution = () -> {
@@ -231,6 +233,7 @@ public class LedDemoLauncher {
 		});
 
 		fancyLed.onInvoke("fadeOut", (input) -> {
+			ThingInterface led = server.getThing("basicLed");
 			Integer duration = ContentHelper.ensureClass(input, Integer.class);
 			Runnable execution = () -> {
                 int steps = duration * 1000 / STEPLENGTH;
@@ -255,6 +258,7 @@ public class LedDemoLauncher {
 		});
 
 		fancyLed.onInvoke("ledOnOff", (input) -> {
+			ThingInterface led = server.getThing("basicLed");
 			Boolean target = ContentHelper.ensureClass(input, Boolean.class);
 
 			if(target) {
@@ -275,6 +279,7 @@ public class LedDemoLauncher {
 		});
 
 		fancyLed.onInvoke("trafficLight", (input) -> {
+			ThingInterface led = server.getThing("basicLed");
 			Boolean go = ContentHelper.ensureClass(input, Boolean.class);
 			log.info("trafic light changing state to {}",(go)? "green": "red" );
 
