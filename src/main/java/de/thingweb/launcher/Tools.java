@@ -26,9 +26,9 @@
 
 package de.thingweb.launcher;
 
-import de.thingweb.desc.DescriptionParser;
-import de.thingweb.desc.pojo.ThingDescription;
+import de.thingweb.desc.ThingDescriptionParser;
 import de.thingweb.thing.MediaType;
+import de.thingweb.thing.Thing;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -100,13 +100,13 @@ public class Tools {
         connection.getInputStream().close();
     }
 
-    static ThingDescription getThingDescriptionFromFileOrResource(String fname) throws IOException, URISyntaxException {
-        ThingDescription fancyLedDesc;
+    static Thing getThingFromFileOrResource(String fname) throws IOException, URISyntaxException {
+        Thing thing;
         try {
-            fancyLedDesc = DescriptionParser.fromFile(fname);
+            thing = ThingDescriptionParser.fromFile(fname);
         } catch (IOException e) {
-            fancyLedDesc = DescriptionParser.fromBytes(readResource(fname).getBytes());
+            thing = ThingDescriptionParser.fromBytes(readResource(fname).getBytes());
         }
-        return fancyLedDesc;
+        return thing;
     }
 }

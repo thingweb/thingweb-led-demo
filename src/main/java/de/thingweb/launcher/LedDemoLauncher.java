@@ -24,8 +24,7 @@
 
 package de.thingweb.launcher;
 
-import de.thingweb.desc.DescriptionParser;
-import de.thingweb.desc.pojo.ThingDescription;
+import de.thingweb.desc.ThingDescriptionParser;
 import de.thingweb.jsruntime.WotJavaScriptRuntime;
 import de.thingweb.leddemo.DemoLedAdapter;
 import de.thingweb.servient.ServientBuilder;
@@ -62,13 +61,12 @@ public class LedDemoLauncher {
 		server = ServientBuilder.newThingServer();
 		jsrt = WotJavaScriptRuntime.createOn(server);
 
-		final ThingDescription fancyLedDesc = Tools.getThingDescriptionFromFileOrResource("fancy_led.jsonld");
-		final ThingDescription basicLedDesc = Tools.getThingDescriptionFromFileOrResource("basic_led.jsonld");
-		final ThingDescription servientDesc = Tools.getThingDescriptionFromFileOrResource("servientmodel.jsonld");
+		final Thing fancyLedDesc = Tools.getThingFromFileOrResource("fancy_led.jsonld");
+		final Thing basicLedDesc = Tools.getThingFromFileOrResource("basic_led.jsonld");
+		srvThing = Tools.getThingFromFileOrResource("servientmodel.jsonld");
 
 		ThingInterface fancyLed = server.addThing(fancyLedDesc);
 		ThingInterface basicLed = server.addThing(basicLedDesc);
-		srvThing = new Thing(servientDesc);
 		ThingInterface serverInterface = server.addThing(srvThing);
 
 		attachBasicHandlers(basicLed);
@@ -100,12 +98,11 @@ public class LedDemoLauncher {
 			final LinkedHashMap jsonld = ContentHelper.ensureClass(data, LinkedHashMap.class);
 
 			try {
-				final ThingDescription thingDescription = DescriptionParser.mapJson(jsonld);
-				Thing newThing = new Thing(thingDescription.getMetadata().getName());
-				newThing.addInteractions(thingDescription.getInteractions());
+				final Thing thing = ThingDescriptionParser.fromJavaMap(jsonld);
+				Thing newThing = new Thing(thing.getName());
 				server.addThing(newThing);
 				serverInterface.setProperty("numberOfThings", server.getThings().size());
-				return newThing.getThingDescription().getMetadata();
+				return newThing.getMetadata();
 			} catch (IOException e) {
 				throw new RuntimeException(e);
 			}
