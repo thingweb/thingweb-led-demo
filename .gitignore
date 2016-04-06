@@ -1,6 +1,7 @@
 # IntelliJ IDEA
 .idea
 thingweb-led-demo.iml
+/.idea
 
 *.class
 
