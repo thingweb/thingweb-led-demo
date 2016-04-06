@@ -1,8 +1,7 @@
 {
   "@context": "http://w3c.github.io/wot/w3c-wot-td-context.jsonld",
   "metadata": {
-    "name": "servient",
-    "protocols": {}
+    "name": "servient"
   },
   "interactions": [
     {
