@@ -24,8 +24,7 @@
 
 package de.thingweb.launcher;
 
-import de.thingweb.desc.DescriptionParser;
-import de.thingweb.desc.pojo.ThingDescription;
+import de.thingweb.desc.ThingDescriptionParser;
 import de.thingweb.jsruntime.WotJavaScriptRuntime;
 import de.thingweb.leddemo.DemoLedAdapter;
 import de.thingweb.security.TokenRequirements;
@@ -64,13 +63,13 @@ public class LedDemoLauncher {
 		server = ServientBuilder.newThingServer(tokenRequirements);
 		jsrt = WotJavaScriptRuntime.createOn(server);
 
-		final ThingDescription fancyLedDesc = Tools.getThingDescriptionFromFileOrResource("fancy_led.jsonld");
-		final ThingDescription basicLedDesc = Tools.getThingDescriptionFromFileOrResource("basic_led.jsonld");
-		final ThingDescription servientDesc = Tools.getThingDescriptionFromFileOrResource("servientmodel.jsonld");
+		final Thing fancyLedDesc = Tools.getThingDescriptionFromFileOrResource("fancy_led.jsonld");
+		final Thing basicLedDesc = Tools.getThingDescriptionFromFileOrResource("basic_led.jsonld");
+		final Thing servientDesc = Tools.getThingDescriptionFromFileOrResource("servientmodel.jsonld");
 
 		ThingInterface fancyLed = server.addThing(fancyLedDesc);
 		ThingInterface basicLed = server.addThing(basicLedDesc);
-		srvThing = new Thing(servientDesc);
+		srvThing = servientDesc;
 		ThingInterface serverInterface = server.addThing(srvThing);
 
 		attachBasicHandlers(basicLed);
@@ -106,12 +105,10 @@ public class LedDemoLauncher {
 			final LinkedHashMap jsonld = ContentHelper.ensureClass(data, LinkedHashMap.class);
 
 			try {
-				final ThingDescription thingDescription = DescriptionParser.mapJson(jsonld);
-				Thing newThing = new Thing(thingDescription.getMetadata().getName());
-				newThing.addInteractions(thingDescription.getInteractions());
+				final Thing newThing = ThingDescriptionParser.fromJavaMap(jsonld);
 				server.addThing(newThing);
 				serverInterface.setProperty("numberOfThings", server.getThings().size());
-				return newThing.getThingDescription().getMetadata();
+				return newThing.getMetadata();
 			} catch (IOException e) {
 				throw new RuntimeException(e);
 			}

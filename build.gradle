@@ -41,9 +41,12 @@ repositories {
 }
 
 dependencies {
-    compile "de.thingweb:thingweb-server:v0.1.11+"
-    compile "de.thingweb:thingweb-parser:v0.1.11+"
-    compile "de.thingweb:thingweb-javascript:v0.1.11+"
+    // compile "de.thingweb:thingweb-server:v0.1.11+"
+    // compile "de.thingweb:thingweb-parser:v0.1.11+"
+    // compile "de.thingweb:thingweb-javascript:v0.1.11+"
+    compile "de.thingweb:thingweb-server:v0.2.0+"
+    compile "de.thingweb:thingweb-parser:v0.2.0+"
+    compile "de.thingweb:thingweb-javascript:v0.2.0+"
 
     //compile "com.github.thingweb.thingweb:thingweb-server:master-SNAPSHOT"
     // compile "com.github.thingweb.thingweb:thingweb-parser:master-SNAPSHOT"
