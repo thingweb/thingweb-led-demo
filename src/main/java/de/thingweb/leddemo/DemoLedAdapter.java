@@ -34,14 +34,12 @@ import org.slf4j.LoggerFactory;
  * Created by Johannes on 18.10.2015.
  */
 public class DemoLedAdapter {
+    private static final String libname = "rpi_ws281x";
+    private static final Logger log = LoggerFactory.getLogger(DemoLedAdapter.class);
     private int colorTemperature;
     private int lastBrightness = (byte) 20;
-    private NeoPixelColor currentColor = new NeoPixelColor(255,255,255);
-
+    private NeoPixelColor currentColor = new NeoPixelColor(255, 255, 255);
     private Neopixels neopixels;
-    private static final String libname = "rpi_ws281x";
-
-    private static final Logger log = LoggerFactory.getLogger(DemoLedAdapter.class);
 
 
     public DemoLedAdapter()
@@ -63,6 +61,12 @@ public class DemoLedAdapter {
 
     private static String colorToString(NeoPixelColor color) {
         return color.red + "," + color.green + "," + color.blue;
+    }
+
+    public static byte doubletoByte(double inp) {
+        if (inp < 0) inp = 0;
+        if (inp > 255) inp = 255;
+        return (byte) inp;
     }
 
     public int getColorTemperature() {
@@ -99,12 +103,6 @@ public class DemoLedAdapter {
         this.neopixels.colorWipe(NeoPixelColor.fromBytes(red,green,blue));
         this.currentColor = NeoPixelColor.fromBytes(red,green,blue);
         this.colorTemperature = colorTemperature;
-    }
-
-    public static byte doubletoByte(double inp) {
-        if(inp < 0) inp = 0;
-        if(inp > 255) inp = 255;
-        return (byte) inp;
     }
 
     public byte getRed() {
@@ -149,12 +147,16 @@ public class DemoLedAdapter {
         }
     }
 
+    public int getBrightnessPercent() {
+        return (int) ((neopixels.getBrightness() / 255) * 100.0);
+    }
+
     public void setBrightnessPercent(short percent) {
         byte target = (byte) (((float) percent / 100.0) * 255);
         neopixels.setBrightness(target);
     }
 
-    public int getBrightnessPercent() {
-        return (int) ((neopixels.getBrightness() / 255) * 100.0);
+    public void setColor(int num, byte r, byte g, byte b) {
+        neopixels.setColor(num, r, g, b);
     }
 }
