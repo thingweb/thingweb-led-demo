@@ -38,6 +38,9 @@ repositories {
     maven {
         url "http://dl.bintray.com/thingweb/maven"
     }
+	maven {
+		url "https://oss.sonatype.org/content/repositories/snapshots"
+	}
 }
 
 dependencies {
