@@ -27,6 +27,19 @@
       "name": "rgbValueBlue",
       "outputData": "xsd:unsignedByte",
       "writable": true
+    },
+    {
+      "@type": "Property",
+      "name": "snakes",
+      "outputData": "xsd:int"
+    },
+    {
+      "@type": "Action",
+      "name": "startSnake"
+    },
+    {
+      "@type": "Action",
+      "name": "stopSnake"
     }
   ]
 }

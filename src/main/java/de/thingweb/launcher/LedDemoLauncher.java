@@ -128,6 +128,8 @@ public class LedDemoLauncher {
 
 	public void attachBasicHandlers(final ThingInterface led) {
 		DemoLedAdapter realLed = new DemoLedAdapter();
+		Snake snake = new Snake(realLed);
+
 
 		//init block
 		led.setProperty("rgbValueRed", realLed.getRed() & 0xFF);
@@ -158,6 +160,21 @@ public class LedDemoLauncher {
 			log.info("setting brightness to " + value);
 			realLed.setBrightnessPercent(value.byteValue());
 		});
+
+		led.onActionInvoke("startSnake", (input) -> {
+			snake.start();
+			led.setProperty("snakes", snake.count());
+			return null;
+		});
+
+		led.onActionInvoke("stopSnake", (input) -> {
+			snake.stop();
+			led.setProperty("snakes", snake.count());
+			return null;
+		});
+
+		// init 0
+		led.setProperty("snakes", 0);
 
 	}
 
