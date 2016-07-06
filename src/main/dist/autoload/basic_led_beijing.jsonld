@@ -1,0 +1,84 @@
+{
+  "@context": [
+    "http://w3c.github.io/wot/w3c-wot-td-context.jsonld"
+  ],
+  "@type": "Thing",
+  "name": "basicLed",
+  "encodings": [
+    "JSON"
+  ],
+  "properties": [
+    {
+      "name": "brightness",
+      "valueType": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 255
+      },
+      "writable": true,
+      "hrefs": [
+        "brightness"
+      ]
+    },
+    {
+      "name": "rgbValueRed",
+      "valueType": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 255
+      },
+      "writable": true,
+      "hrefs": [
+        "rgbValueRed"
+      ]
+    },
+    {
+      "name": "rgbValueGreen",
+      "valueType": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 255
+      },
+      "writable": true,
+      "hrefs": [
+        "rgbValueGreen"
+      ]
+    },
+    {
+      "name": "rgbValueBlue",
+      "valueType": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 255
+      },
+      "writable": true,
+      "hrefs": [
+        "rgbValueBlue"
+      ]
+    },
+    {
+      "name": "snakes",
+      "valueType": {
+        "type": "integer"
+      },
+      "writable": false,
+      "hrefs": [
+        "snakes"
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "name": "startSnake",
+      "hrefs": [
+        "startSnake"
+      ]
+    },
+    {
+      "name": "stopSnake",
+      "hrefs": [
+        "stopSnake"
+      ]
+    }
+  ]
+}

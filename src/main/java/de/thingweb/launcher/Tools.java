@@ -29,7 +29,6 @@ package de.thingweb.launcher;
 import de.thingweb.desc.ThingDescriptionParser;
 import de.thingweb.thing.MediaType;
 import de.thingweb.thing.Thing;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -59,7 +58,15 @@ public class Tools {
         env.put("create", "true");
         FileSystem zipfs = FileSystems.newFileSystem(uri, env);
 */
-        return new String(Files.readAllBytes(Paths.get(uri)), Charset.forName("UTF-8"));
+
+        try {
+            final String s = new String(Files.readAllBytes(Paths.get(uri)), Charset.forName("UTF-8"));
+            return s;
+        } catch (Exception ex) {
+            log.warn("problem reading resource", ex);
+            return null;
+        }
+
     }
 
     public static String pathOrResource(String path) throws URISyntaxException, IOException {
@@ -70,7 +77,7 @@ public class Tools {
                 final URI uri = Tools.class.getClassLoader().getResource(path).toURI();
                 return new String(Files.readAllBytes(Paths.get(path)));
             } catch (Exception ex) {
-                log.error("problem reading file", e);
+                log.error("problem reading file", ex);
                 return null;
             }
         }

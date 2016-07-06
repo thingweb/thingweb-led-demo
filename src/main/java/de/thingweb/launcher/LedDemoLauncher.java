@@ -59,36 +59,27 @@ public class LedDemoLauncher {
 	private static final ExecutorService executor = Executors.newCachedThreadPool();
 	private final ThingServer server;
 	private final WotJavaScriptRuntime jsrt;
-	private final Thing srvThing;
 
 	public LedDemoLauncher() throws Exception {
 		ServientBuilder.initialize();
 		final TokenRequirements tokenRequirements = NicePlugFestTokenReqFactory.createTokenRequirements();
 		server = ServientBuilder.newThingServer(tokenRequirements);
 		jsrt = WotJavaScriptRuntime.createOn(server);
-
-		final Thing fancyLedDesc = Tools.getThingDescriptionFromFileOrResource("fancy_led.jsonld");
-		// final Thing basicLedDesc = Tools.getThingDescriptionFromFileOrResource("basic_led.jsonld");
-		final Thing basicLedDesc = Tools.getThingDescriptionFromFileOrResource("basic_led_beijing.jsonld");
-		final Thing servientDesc = Tools.getThingDescriptionFromFileOrResource("servientmodel.jsonld");
-
-		ThingInterface fancyLed = server.addThing(fancyLedDesc);
-		ThingInterface basicLed = server.addThing(basicLedDesc);
-		srvThing = servientDesc;
-		ThingInterface serverInterface = server.addThing(srvThing);
-
-		attachBasicHandlers(basicLed);
-		attachFancyHandlers(fancyLed);
-		addServientInterfaceHandlers(serverInterface);
 	}
 
 	public static void main(String[] args) throws Exception {
 		LedDemoLauncher launcher = new LedDemoLauncher();
 		launcher.start();
 		launcher.runAutoLoad();
+		launcher.initializeThings();
 		launcher.runAutoStart();
 	}
 
+	public void initializeThings() throws IOException {
+		attachBasicHandlers(server.getThing("basicLed"));
+		attachFancyHandlers(server.getThing("fancyLed"));
+		addServientInterfaceHandlers(server.getThing("servient"));
+	}
 
 	public void runAutoLoad() throws IOException {
 		String sAutoLoadFolder = "./autoload";
@@ -134,7 +125,7 @@ public class LedDemoLauncher {
 		serverInterface.onUpdate("securityEnabled", (nV) -> {
 			final Boolean protectionEnabled = ContentHelper.ensureClass(nV, Boolean.class);
 			server.getThings().stream()
-					.filter((thing1 -> !thing1.equals(srvThing)))
+					.filter((thing1 -> !thing1.getName().equals("servient")))
 					.forEach(thing -> {
 						log.info(" setting security enablement for {} to {}", thing.getName(), protectionEnabled);
 						thing.setProtection(protectionEnabled);
@@ -170,7 +161,6 @@ public class LedDemoLauncher {
 	public void attachBasicHandlers(final ThingInterface led) {
 		DemoLedAdapter realLed = new DemoLedAdapter();
 		Snake snake = new Snake(realLed);
-
 
 		//init block
 		led.setProperty("rgbValueRed", realLed.getRed() & 0xFF);

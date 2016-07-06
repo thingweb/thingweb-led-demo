@@ -40,10 +40,10 @@ console.log("looking for voter locally");
                  basicLed.setProperty("rgbValueBlue",0);
              }  else  { // (votes == 0)
                  // make led white
-                 console.log("setting LED white");
-                 basicLed.setProperty("rgbValueRed",255);
-                 basicLed.setProperty("rgbValueGreen",255);
-                 basicLed.setProperty("rgbValueBlue",255);
+                 console.log("setting LED off");
+                 basicLed.setProperty("rgbValueRed",60);
+                 basicLed.setProperty("rgbValueGreen",60);
+                 basicLed.setProperty("rgbValueBlue",60);
              };
          });
     })
