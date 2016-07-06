@@ -89,16 +89,20 @@ public class LedDemoLauncher {
 	}
 
 	public void runAutostart() throws IOException {
-		Files.walk(Paths.get("./autorun"))
-				.filter(Files::isRegularFile)
-				.map(Path::toFile)
-				.forEach(file -> {
-					try {
-						jsrt.runFile(file);
-					} catch (FileNotFoundException | ScriptException e) {
-						log.error("error running autostart file " + file, e);
-					}
-				});
+		String sAutoRunFolder = "./autorun";
+		Path p = Paths.get(sAutoRunFolder);
+		if(Files.exists(p)) {
+			Files.walk(p)
+			.filter(Files::isRegularFile)
+			.map(Path::toFile)
+			.forEach(file -> {
+				try {
+					jsrt.runFile(file);
+				} catch (FileNotFoundException | ScriptException e) {
+					log.error("error running autostart file " + file, e);
+				}
+			});
+		}
 	}
 
 	public void start() throws Exception {
