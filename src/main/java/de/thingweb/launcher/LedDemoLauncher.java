@@ -85,10 +85,28 @@ public class LedDemoLauncher {
 	public static void main(String[] args) throws Exception {
 		LedDemoLauncher launcher = new LedDemoLauncher();
 		launcher.start();
-		launcher.runAutostart();
+		launcher.runAutoLoad();
+		launcher.runAutoStart();
 	}
 
-	public void runAutostart() throws IOException {
+
+	public void runAutoLoad() throws IOException {
+		String sAutoLoadFolder = "./autoload";
+		Path p = Paths.get(sAutoLoadFolder);
+		if (Files.exists(p)) {
+			Files.walk(p)
+					.filter(Files::isRegularFile)
+					.forEach(path -> {
+						try {
+							server.addThing(ThingDescriptionParser.fromFile(path.toString()));
+						} catch (IOException e) {
+							log.error("error loading thing description file " + path, e);
+						}
+					});
+		}
+	}
+
+	public void runAutoStart() throws IOException {
 		String sAutoRunFolder = "./autorun";
 		Path p = Paths.get(sAutoRunFolder);
 		if(Files.exists(p)) {

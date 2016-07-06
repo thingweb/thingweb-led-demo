@@ -1,0 +1,53 @@
+{
+  "@context": "http://w3c.github.io/wot/w3c-wot-td-context.jsonld",
+  "name": "voter",
+  "uris": [
+    "coap://192.168.178.54/things/voter",
+    "http://192.168.178.54:8080/things/voter"
+  ],
+  "properties": [
+    {
+      "name": "votes",
+      "writable": false,
+      "valueType": {
+        "type": "number"
+      },
+      "hrefs": [
+        "votes",
+        "votes"
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "name": "tooCold",
+      "hrefs": [
+        "toocold",
+        "toocold"
+      ]
+    },
+    {
+      "name": "tooHot",
+      "hrefs": [
+        "toohot",
+        "toohot"
+      ]
+    }
+  ],
+  "events": [
+    {
+      "name": "tooCold",
+      "hrefs": [
+        "toocold",
+        "toocold"
+      ]
+    },
+    {
+      "name": "tooHot",
+      "hrefs": [
+        "toohot",
+        "toohot"
+      ]
+    }
+  ]
+}
