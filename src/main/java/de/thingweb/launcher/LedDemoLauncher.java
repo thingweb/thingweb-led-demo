@@ -64,7 +64,8 @@ public class LedDemoLauncher {
 		jsrt = WotJavaScriptRuntime.createOn(server);
 
 		final Thing fancyLedDesc = Tools.getThingDescriptionFromFileOrResource("fancy_led.jsonld");
-		final Thing basicLedDesc = Tools.getThingDescriptionFromFileOrResource("basic_led.jsonld");
+		// final Thing basicLedDesc = Tools.getThingDescriptionFromFileOrResource("basic_led.jsonld");
+		final Thing basicLedDesc = Tools.getThingDescriptionFromFileOrResource("basic_led_beijing.jsonld");
 		final Thing servientDesc = Tools.getThingDescriptionFromFileOrResource("servientmodel.jsonld");
 
 		ThingInterface fancyLed = server.addThing(fancyLedDesc);
