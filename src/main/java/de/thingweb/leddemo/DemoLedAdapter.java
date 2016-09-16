@@ -34,24 +34,29 @@ import org.slf4j.LoggerFactory;
  * Created by Johannes on 18.10.2015.
  */
 public class DemoLedAdapter {
-    private static final String libname = "rpi_ws281x";
     private static final Logger log = LoggerFactory.getLogger(DemoLedAdapter.class);
     private int colorTemperature;
     private int lastBrightness = (byte) 20;
     private NeoPixelColor currentColor = new NeoPixelColor(255, 255, 255);
     private Neopixels neopixels;
 
-
     public DemoLedAdapter()
     {
+
         try {
-            log.info("loading library for LED...");
-            System.loadLibrary(libname);
-            neopixels = NeopixelsImpl.createWithDefaults(64);
-        } catch (UnsatisfiedLinkError e) {
-            log.error("could not find lib {} in {}",libname,System.getProperty("java.library.path"));
-            log.error("creating mockup");
-            neopixels = new FakeNeopixels();
+            log.info("loading unicorn-hat lib for LEDs...");
+            System.loadLibrary("unicorn");
+            neopixels = new UnicornHatPixels();
+        } catch (UnsatisfiedLinkError e){
+            log.error("could not find libunicorn in {}, trying rpi_ws821x",System.getProperty("java.library.path"));
+            try {
+                System.loadLibrary("rpi_ws281x");
+                neopixels = NeopixelsImpl.createWithDefaults(64);
+            } catch (UnsatisfiedLinkError e2) {
+                log.error("could not find librpi_ws821x in {}, creating mockup",System.getProperty("java.library.path"));
+                neopixels = new FakeNeopixels();
+            }
+
         }
 
         neopixels.init();
