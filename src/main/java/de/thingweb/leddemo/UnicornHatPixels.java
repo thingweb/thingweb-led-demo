@@ -59,7 +59,7 @@ public class UnicornHatPixels implements com.github.h0ru5.neopixel.Neopixels {
 
     @Override
     public void colorWipe(NeoPixelColor neoPixelColor) {
-        uch.setColor(neoPixelColor.red,neoPixelColor.blue,neoPixelColor.green);
+        uch.setColor(neoPixelColor.red,neoPixelColor.green,neoPixelColor.blue);
         this.red = neoPixelColor.red;
         this.green = neoPixelColor.green;
         this.blue = neoPixelColor.blue;
