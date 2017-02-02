@@ -57,22 +57,33 @@ public class LedDemoLauncher {
 	private static final Logger log = LoggerFactory.getLogger(LedDemoLauncher.class);
 	private static final int STEPLENGTH = 100;
 	private static final ExecutorService executor = Executors.newCachedThreadPool();
-	private final ThingServer server;
-	private final WotJavaScriptRuntime jsrt;
+	private ThingServer server;
+	private WotJavaScriptRuntime jsrt;
 
 	public LedDemoLauncher() throws Exception {
-		ServientBuilder.initialize();
-		final TokenRequirements tokenRequirements = NicePlugFestTokenReqFactory.createTokenRequirements();
-		server = ServientBuilder.newThingServer(tokenRequirements);
-		jsrt = WotJavaScriptRuntime.createOn(server);
+
 	}
 
 	public static void main(String[] args) throws Exception {
 		LedDemoLauncher launcher = new LedDemoLauncher();
 		launcher.start();
-		launcher.runAutoLoad();
-		launcher.initializeThings();
-		launcher.runAutoStart();
+	}
+
+	public void start() throws Exception {
+		ServientBuilder.initialize();
+		final TokenRequirements tokenRequirements = NicePlugFestTokenReqFactory.createTokenRequirements();
+		server = ServientBuilder.newThingServer(tokenRequirements);
+		jsrt = WotJavaScriptRuntime.createOn(server);
+		runAutoLoad();
+		initializeThings();
+		ServientBuilder.start();
+		runAutoStart();
+	}
+
+	public void restart() throws Exception {
+		ServientBuilder.stop();
+		ServientBuilder.deinit();
+		start();
 	}
 
 	public void initializeThings() throws IOException {
@@ -114,26 +125,21 @@ public class LedDemoLauncher {
 		}
 	}
 
-	public void start() throws Exception {
-		ServientBuilder.start();
-	}
 
 	public void addServientInterfaceHandlers(ThingInterface serverInterface) throws IOException {
 		serverInterface.setProperty("numberOfThings", server.getThings().size());
 		serverInterface.setProperty("securityEnabled", false);
+		serverInterface.setProperty("numberOfThings", server.getThings().size());
+		serverInterface.setProperty("securityEnabled", false);
 
-		serverInterface.onUpdate("securityEnabled", (nV) -> {
+		serverInterface.onPropertyUpdate("securityEnabled", (nV) -> {
 			final Boolean protectionEnabled = ContentHelper.ensureClass(nV, Boolean.class);
 			server.getThings().stream()
-					.filter((thing1 -> !thing1.getName().equals("servient")))
-					.forEach(thing -> {
-						log.info(" setting security enablement for {} to {}", thing.getName(), protectionEnabled);
-						thing.setProtection(protectionEnabled);
-						server.rebindSec(thing.getName(), protectionEnabled); //overwriting handlers, very inefficient
-					});
+					.filter((thing1 -> !thing1.equals(serverInterface)))
+					.forEach(thing -> thing.setProtection(protectionEnabled));
 		});
 
-		serverInterface.onInvoke("createThing", (data) -> {
+		serverInterface.onActionInvoke("createThing", (data) -> {
 			final LinkedHashMap jsonld = ContentHelper.ensureClass(data, LinkedHashMap.class);
 
 			try {
@@ -146,7 +152,7 @@ public class LedDemoLauncher {
 			}
 		});
 
-		serverInterface.onInvoke("addHandlerScript", (data) -> {
+		serverInterface.onActionInvoke("addScript", (data) -> {
 			final String script = ContentHelper.ensureClass(data, String.class);
 
 			try {
@@ -156,11 +162,24 @@ public class LedDemoLauncher {
 			}
 			return new Content(new byte[0], MediaType.APPLICATION_JSON);
 		});
+
+		serverInterface.onActionInvoke("reset",(data) -> {
+			log.warn("invoking requested restart...");
+			try {
+				this.restart();
+				log.info("restarted");
+				return ContentHelper.wrap("Restarted",MediaType.TEXT_PLAIN);
+			} catch (Exception e) {
+				throw new RuntimeException(e);
+			}
+		});
 	}
 
 	public void attachBasicHandlers(final ThingInterface led) {
 		DemoLedAdapter realLed = new DemoLedAdapter();
 		Snake snake = new Snake(realLed);
+
+		if(led == null) { log.error("basicLed is null");}
 
 		//init block
 		led.setProperty("rgbValueRed", realLed.getRed() & 0xFF);
