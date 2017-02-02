@@ -71,7 +71,7 @@ public class LedDemoLauncher {
 
 	public void start() throws Exception {
 		ServientBuilder.initialize();
-		final TokenRequirements tokenRequirements = NicePlugFestTokenReqFactory.createTokenRequirements();
+		final TokenRequirements tokenRequirements = SantaClaraPlugFestTokenReqFactory.createTokenRequirements();
 		server = ServientBuilder.newThingServer(tokenRequirements);
 		jsrt = WotJavaScriptRuntime.createOn(server);
 		runAutoLoad();
