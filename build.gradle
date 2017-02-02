@@ -50,7 +50,7 @@ dependencies {
     // compile "de.thingweb:thingweb-javascript:v0.1.11+"
     //compile "de.thingweb:thingweb-server:v0.4.+"
     //compile "de.thingweb:thingweb-parser:v0.4.+"
-    compile "de.thingweb:thingweb-javascript:v0.4.+"
+    compile "de.thingweb:thingweb-javascript:v0.5.+"
 
     //compile "com.github.thingweb.thingweb:thingweb-server:master-SNAPSHOT"
     // compile "com.github.thingweb.thingweb:thingweb-parser:master-SNAPSHOT"
